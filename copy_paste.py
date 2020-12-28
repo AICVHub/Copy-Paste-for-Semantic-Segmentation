@@ -55,6 +55,29 @@ def rescale_src(mask_src, img_src, h, w):
     return mask_pad, img_pad
 
 
+def Large_Scale_Jittering(mask, img, min_scale=0.1, max_scale=2.0):
+    rescale_ratio = np.random.uniform(min_scale, max_scale)
+    h, w, _ = img.shape
+
+    # rescale
+    h_new, w_new = int(h * rescale_ratio), int(w * rescale_ratio)
+    img = cv2.resize(img, (w_new, h_new), interpolation=cv2.INTER_LINEAR)
+    mask = cv2.resize(mask, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
+
+    # crop or padding
+    x, y = np.random.randint(0, abs(w_new - w)), np.random.randint(0, abs(h_new - h))
+    if rescale_ratio <= 1.0:  # padding
+        img_pad = np.ones((h, w, 3), dtype=np.uint8) * 168
+        mask_pad = np.zeros((h, w, 3), dtype=np.uint8)
+        img_pad[y:y+h_new, x:x+w_new, :] = img
+        mask_pad[y:y+h_new, x:x+w_new, :] = mask
+        return mask_pad, img_pad
+    else:  # crop
+        img_crop = img[y:y+h, x:x+w, :]
+        mask_crop = mask[y:y+h, x:x+w, :]
+        return mask_crop, img_crop
+
+
 def main(args):
     # input path
     segclass = os.path.join(args.input_dir, 'SegmentationClass')
@@ -78,9 +101,14 @@ def main(args):
         img_main = cv2.imread(os.path.join(JPEGs, mask_main_path.replace('.png', '.jpg')))
         mask_main, img_main = random_flip_horizontal(mask_main, img_main)
 
-        # rescale mask_src/img_src to less than mask_main/img_main's size
-        h, w, _ = img_main.shape
-        mask_src, img_src = rescale_src(mask_src, img_src, h, w)
+        # LSJ， Large_Scale_Jittering
+        if args.lsj:
+            mask_src, img_src = Large_Scale_Jittering(mask_src, img_src)
+            mask_main, img_main = Large_Scale_Jittering(mask_main, img_main)
+        else:
+            # rescale mask_src/img_src to less than mask_main/img_main's size
+            h, w, _ = img_main.shape
+            mask_src, img_src = rescale_src(mask_src, img_src, h, w)
 
         img = img_add(img_src, img_main, mask_src)
         mask = img_add(mask_src, mask_main, mask_src)
@@ -93,15 +121,14 @@ def main(args):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_dir", default="VOC_root/VOCdevkit2012/VOC2012", type=str,
+    parser.add_argument("--input_dir", default="../dataset/VOCdevkit2012/VOC2012", type=str,
                         help="input annotated directory")
-    parser.add_argument("--output_dir", default="VOC_root/VOCdevkit2012/VOC2012_copy_paste", type=str,
+    parser.add_argument("--output_dir", default="../dataset/VOCdevkit2012/VOC2012_copy_paste", type=str,
                         help="output dataset directory")
-
+    parser.add_argument("--lsj", default=True, type=bool, help="if use Large Scale Jittering")
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = get_args()
-    # test_03(args)
     main(args)
