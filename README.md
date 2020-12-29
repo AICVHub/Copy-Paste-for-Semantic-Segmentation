@@ -9,6 +9,10 @@ This repo is implementation for semantic segmentation. You can use also in insta
 
 We do it at VOC-like dataset.
 
+More details see [blog](https://blog.csdn.net/oYeZhou/article/details/111307717).
+
+
+
 ### methods used in this repo:
 
 1. Random Horizontal Flip

@@ -7,6 +7,7 @@ import cv2
 import argparse
 import os
 import numpy as np
+import tqdm
 
 
 def random_flip_horizontal(mask, img, p=0.5):
@@ -78,6 +79,25 @@ def Large_Scale_Jittering(mask, img, min_scale=0.1, max_scale=2.0):
         return mask_crop, img_crop
 
 
+def copy_paste(mask_src, img_src, mask_main, img_main):
+    mask_src, img_src = random_flip_horizontal(mask_src, img_src)
+    mask_main, img_main = random_flip_horizontal(mask_main, img_main)
+
+    # LSJ， Large_Scale_Jittering
+    if args.lsj:
+        mask_src, img_src = Large_Scale_Jittering(mask_src, img_src)
+        mask_main, img_main = Large_Scale_Jittering(mask_main, img_main)
+    else:
+        # rescale mask_src/img_src to less than mask_main/img_main's size
+        h, w, _ = img_main.shape
+        mask_src, img_src = rescale_src(mask_src, img_src, h, w)
+
+    img = img_add(img_src, img_main, mask_src)
+    mask = img_add(mask_src, mask_main, mask_src)
+
+    return mask, img
+
+
 def main(args):
     # input path
     segclass = os.path.join(args.input_dir, 'SegmentationClass')
@@ -89,29 +109,19 @@ def main(args):
     os.makedirs(os.path.join(args.output_dir, 'JPEGImages'), exist_ok=True)
 
     masks_path = os.listdir(segclass)
-    for mask_path in masks_path:
+    tbar = tqdm.tqdm(masks_path, ncols=100)
+    for mask_path in tbar:
         # get source mask and img
         mask_src = cv2.imread(os.path.join(segclass, mask_path))
         img_src = cv2.imread(os.path.join(JPEGs, mask_path.replace('.png', '.jpg')))
-        mask_src, img_src = random_flip_horizontal(mask_src, img_src)
 
         # random choice main mask/img
         mask_main_path = np.random.choice(masks_path)
         mask_main = cv2.imread(os.path.join(segclass, mask_main_path))
         img_main = cv2.imread(os.path.join(JPEGs, mask_main_path.replace('.png', '.jpg')))
-        mask_main, img_main = random_flip_horizontal(mask_main, img_main)
 
-        # LSJ， Large_Scale_Jittering
-        if args.lsj:
-            mask_src, img_src = Large_Scale_Jittering(mask_src, img_src)
-            mask_main, img_main = Large_Scale_Jittering(mask_main, img_main)
-        else:
-            # rescale mask_src/img_src to less than mask_main/img_main's size
-            h, w, _ = img_main.shape
-            mask_src, img_src = rescale_src(mask_src, img_src, h, w)
-
-        img = img_add(img_src, img_main, mask_src)
-        mask = img_add(mask_src, mask_main, mask_src)
+        # Copy-Paste data augmentation
+        mask, img = copy_paste(mask_src, img_src, mask_main, img_main)
 
         mask_filename = "copy_paste_" + mask_path
         img_filename = mask_filename.replace('.png', '.jpg')
