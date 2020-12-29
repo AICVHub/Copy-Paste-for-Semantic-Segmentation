@@ -3,7 +3,11 @@ typora-root-url: images
 ---
 
 # Copy-Paste-for-Semantic-Segmentation
-Unofficial implementation of Copy-Paste method: Simple Copy-Paste is a Strong Data Augmentation Method for Instance Segmentation.
+Unofficial implementation of Copy-Paste method:  [Simple Copy-Paste is a Strong Data Augmentation Method for Instance Segmentation.](https://arxiv.org/pdf/2012.07177.pdf)
+
+This repo is implementation for semantic segmentation. You can use also in instance segmentation.
+
+We do it at VOC-like dataset.
 
 ### methods used in this repo:
 
