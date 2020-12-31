@@ -42,7 +42,7 @@ def main(args):
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dir", default="../dataset/coco2017", type=str,
-                        help="input dataset directory")
+                        help="coco dataset directory")
     parser.add_argument("--split", default="train2017", type=str,
                         help="train2017 or val2017")
     return parser.parse_args()

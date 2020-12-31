@@ -7,7 +7,7 @@ Unofficial implementation of Copy-Paste method:  [Simple Copy-Paste is a Strong 
 
 This repo is implementation for semantic segmentation. You can use also in instance segmentation.
 
-We do it at VOC-like dataset.
+We do it at VOC-like dataset. If your dataset is coco-like, you need extract mask from coco first.
 
 More details see [blog](https://blog.csdn.net/oYeZhou/article/details/111307717).
 
@@ -33,7 +33,22 @@ More details see [blog](https://blog.csdn.net/oYeZhou/article/details/111307717)
 
 ### Usage:
 
+If use coco-like dataset, you need run `get_coco_mask.py`  first:
+
+```python
+usage: get_coco_mask.py [-h] [--input_dir INPUT_DIR] [--split SPLIT]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input_dir INPUT_DIR
+                        coco dataset directory
+  --split SPLIT         train2017 or val2017
+
 ```
+
+And then, run `copy_paste.py`:
+
+```python
 usage: copy_paste.py [-h] [--input_dir INPUT_DIR] [--output_dir OUTPUT_DIR]
                      [--lsj LSJ]
 
@@ -47,7 +62,17 @@ optional arguments:
 
 ```
 
-for example:
+If your dataset is voc-like, just run `copy_paste.py`.
+
+
+
+### Examples:
+
+example of `get_coco_mask.py`:
+
+`python copy_paste.py --input_dir ../dataset/coco2017 --split train2017`
+
+example of `copy_paste.py`:
 
 `python copy_paste.py --input_dir ../dataset/VOCdevkit2012/VOC2012 --output_dir ../dataset/VOCdevkit2012/VOC2012_copy_paste --lsj True`
 
